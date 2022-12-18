@@ -7,17 +7,12 @@
 
 import UIKit
 
-enum Link: String {
-    case productsURL = "https://dummyjson.com/products/1"
-    case imageURL = "https://applelives.com/wp-content/uploads/2016/03/iPhone-SE-11.jpeg"
-}
-
 enum UserAction: String, CaseIterable {
-    case showProducts = "Show Products"
+    case showProduct = "Show Product"
     case showImage = "Show Image"
 }
 
-class CollectionViewController: UICollectionViewController {
+class MainViewController: UICollectionViewController {
     
     private let userActions = UserAction.allCases
     
@@ -41,10 +36,18 @@ class CollectionViewController: UICollectionViewController {
         let userAction = userActions[indexPath.item]
         
         switch userAction {
-        case .showProducts:
-            fetchProducts()
+        case .showProduct:
+            performSegue(withIdentifier: "showProduct", sender: nil)
         case .showImage:
             performSegue(withIdentifier: "showImage", sender: nil)
+        }
+    }
+    
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showProduct" {
+            guard let productVC = segue.destination as? ProductTableViewController else { return }
+            productVC.fetchProduct()
         }
     }
     
@@ -79,32 +82,23 @@ class CollectionViewController: UICollectionViewController {
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
-extension CollectionViewController: UICollectionViewDelegateFlowLayout {
+extension MainViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         CGSize(width: UIScreen.main.bounds.width - 48, height: 100)
     }
 }
-
-extension CollectionViewController {
-    private func fetchProducts() {
-        guard let url = URL(string: Link.productsURL.rawValue) else { return }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let data else {
-                print(error?.localizedDescription ?? "No error description")
-                return
-            }
-            
-            do {
-                let products = try JSONDecoder().decode(Products.self, from: data)
-                print(products)
-                self?.successAlert()
-            } catch let error {
-                print(error)
-                self?.failedAlert()
-            }
-        }.resume()
-    }
-}
+//
+//private func fetchProduct() {
+//    NetworkManager.shared.fetch(Product.self, from: Link.productURL.rawValue) { [weak self] result in
+//        switch result {
+//        case .success(let product):
+//            print(product)
+//            self?.successAlert()
+//        case .failure(let error):
+//            print(error)
+//            self?.failedAlert()
+//        }
+//    }
+//}
